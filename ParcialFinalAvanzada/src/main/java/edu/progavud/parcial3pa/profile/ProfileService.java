@@ -68,7 +68,7 @@ public class ProfileService {
             return existente.get();
         }
 
-        User user = restTemplate.getForObject("http://localhost:8091/auth/by-username/" + username, User.class);
+        User user = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + username, User.class);
 
         if (user == null || user.getId() == null) {
             throw new RuntimeException("No se pudo obtener el usuario desde auth-service");
