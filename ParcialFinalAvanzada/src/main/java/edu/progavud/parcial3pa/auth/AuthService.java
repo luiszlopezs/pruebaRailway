@@ -51,7 +51,8 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         emailService.enviarConfirmacionCuenta(savedUser.getEmail(), savedUser.getUsername());
         log.info("Usuario registrado exitosamente: {}", savedUser.getUsername());
-
+        
+        Profile profile = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/profile/"+savedUser.getUsername(), Profile.class);
 //        Profile nuevoPerfil = new Profile();
 //        nuevoPerfil.setUser(savedUser);
 //        nuevoPerfil.setBio("");
