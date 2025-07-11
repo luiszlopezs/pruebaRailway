@@ -18,39 +18,52 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
- * Controlador REST encargado de gestionar las operaciones de autenticación de usuarios,
- * como registro, login y obtención de perfiles asociados.
+ * Controlador REST encargado de gestionar las operaciones de autenticación de
+ * usuarios, como registro, login y obtención de perfiles asociados.
  *
- * <p>Este controlador expone los endpoints relacionados con la autenticación bajo la ruta <code>/auth</code>.</p>
+ * <p>
+ * Este controlador expone los endpoints relacionados con la autenticación bajo
+ * la ruta <code>/auth</code>.</p>
  *
- * <p>Permite el acceso desde cualquier origen gracias a la anotación {@code @CrossOrigin(origins = "*")}.</p>
+ * <p>
+ * Permite el acceso desde cualquier origen gracias a la anotación
+ * {@code @CrossOrigin(origins = "*")}.</p>
  */
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-    
-    /** Logger para mostrar mensajes en consola. */    
+
+    /**
+     * Logger para mostrar mensajes en consola.
+     */
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-    
-    /** Servicio que contiene la lógica de autenticación. */
+
+    /**
+     * Servicio que contiene la lógica de autenticación.
+     */
     private final AuthService authService;
-    
-    /** Repositorio para operaciones relacionadas con seguidores. */
+
+    /**
+     * Repositorio para operaciones relacionadas con seguidores.
+     */
     @Autowired
     private FollowRepository followRepository;
 
-    /** Repositorio para operaciones con usuarios. */
+    /**
+     * Repositorio para operaciones con usuarios.
+     */
     @Autowired
     private UserRepository userRepository;
-    
-    /** Repositorio para acceder a los perfiles de usuario. */
+
+    /**
+     * Repositorio para acceder a los perfiles de usuario.
+     */
     @Autowired
     private ProfileRepository profileRepository; //Para búsqueda 
 
-        /**
+    /**
      * Constructor que inyecta el servicio de autenticación.
      *
      * @param authService servicio de autenticación
@@ -60,7 +73,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-        @GetMapping("/ping")
+    @GetMapping("/ping")
     public String ping() {
         return "🚀 ¡Tu backend Spring Boot está funcionando en Railway!";
     }
@@ -198,27 +211,32 @@ public class AuthController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //Búsqueda por nombre de usuario
+//    //Búsqueda por nombre de usuario
+//    @GetMapping("/search")
+//    public ResponseEntity<List<Map<String, Object>>> searchUsers(@RequestParam String query) {
+//        List<User> users = authService.searchUsersByUsername(query);
+//        List<Map<String, Object>> result = new ArrayList<>();
+//
+//        for (User u : users) {
+//            Map<String, Object> userMap = new HashMap<>();
+//            userMap.put("id", u.getId());
+//            userMap.put("username", u.getUsername());
+//            userMap.put("fullName", u.getFullName());
+//
+//            // Obtener foto de perfil (si existe)
+//            Optional<Profile> profileOpt = profileRepository.findByUsername(u.getUsername());
+//            
+//            userMap.put("profilePicture", profileOpt.map(Profile::getProfilePicture)
+//                    .orElse("/postsImgs/profile_pictures/default.jpg"));
+//
+//            result.add(userMap);
+//        }
+//
+//        return ResponseEntity.ok(result);
+//    }
     @GetMapping("/search")
     public ResponseEntity<List<Map<String, Object>>> searchUsers(@RequestParam String query) {
-        List<User> users = authService.searchUsersByUsername(query);
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (User u : users) {
-            Map<String, Object> userMap = new HashMap<>();
-            userMap.put("id", u.getId());
-            userMap.put("username", u.getUsername());
-            userMap.put("fullName", u.getFullName());
-
-            // Obtener foto de perfil (si existe)
-            Optional<Profile> profileOpt = profileRepository.findByUsername(u.getUsername());
-            
-            userMap.put("profilePicture", profileOpt.map(Profile::getProfilePicture)
-                    .orElse("/postsImgs/profile_pictures/default.jpg"));
-
-            result.add(userMap);
-        }
-
+        List<Map<String, Object>> result = authService.getUsersWithProfileInfo(query);
         return ResponseEntity.ok(result);
     }
 
@@ -229,7 +247,7 @@ public class AuthController {
 
         try {
             // Eliminar relaciones follow antes de eliminar al usuario
-            
+
             // Eliminar usuario
             userRepository.deleteById(id);
 

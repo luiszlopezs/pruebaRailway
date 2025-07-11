@@ -2,7 +2,10 @@ package edu.progavud.parcial3pa.auth;
 
 import edu.progavud.parcial3pa.profile.Profile;
 import edu.progavud.parcial3pa.profile.ProfileRepository;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +67,7 @@ public class AuthService {
         emailService.enviarConfirmacionCuenta(savedUser.getEmail(), savedUser.getUsername());
         log.info("Usuario registrado exitosamente: {}", savedUser.getUsername());
         
-        //restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/profile/"+savedUser.getUsername(), Profile.class);
-//        Profile nuevoPerfil = new Profile();
-//        nuevoPerfil.setUser(savedUser);
-//        nuevoPerfil.setBio("");
-//        nuevoPerfil.setFollowers(0);
-//        nuevoPerfil.setFollowing(0);
-//        nuevoPerfil.setNumPosts(0);
-//        nuevoPerfil.setProfilePicture("/postsImgs/profile_pictures/default.jpg"); // opcional
-//        profileRepository.save(nuevoPerfil);
+        
         return savedUser;
     }
 
@@ -106,6 +101,41 @@ public class AuthService {
     public List<User> searchUsersByUsername(String query) {
         return userRepository.searchByUsernameStartsWith(query);
     }
+    
+    public List<Map<String, Object>> getUsersWithProfileInfo(String query) {
+    List<User> users = searchUsersByUsername(query);
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    for (User u : users) {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", u.getId());
+        userMap.put("username", u.getUsername());
+        userMap.put("fullName", u.getFullName());
+
+        try {
+            Profile profile = restTemplate.getForObject(
+                "https://exciting-tranquility-production-14e6.up.railway.app/profile/" + u.getUsername(),
+                Profile.class
+            );
+
+            String profilePic = (profile != null && profile.getProfilePicture() != null)
+                ? profile.getProfilePicture()
+                : "/postsImgs/profile_pictures/default.jpg";
+
+            userMap.put("profilePicture", profilePic);
+
+        } catch (Exception e) {
+            // En caso de error de conexión o si el profile no existe
+            userMap.put("profilePicture", "/postsImgs/profile_pictures/default.jpg");
+        }
+
+        result.add(userMap);
+    }
+
+    return result;
+}
+
+
 
     /**
      * Busca usuario por ID
