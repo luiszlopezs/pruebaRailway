@@ -36,7 +36,7 @@ public class FollowService {
             followRepository.save(new Follow(from, to));
 
             // REST Template para actualizar contadores
-            restTemplate.postForObject("https://auth-service.up.railway.app/profile/increment-follow", Map.of(
+            restTemplate.postForObject("https://exciting-tranquility-production-14e6.up.railway.app/profile/increment-follow", Map.of(
                     "follower", from.getUsername(),
                     "followed", to.getUsername()
             ), Void.class);
@@ -46,9 +46,9 @@ public class FollowService {
 
     @Transactional
     public boolean unfollowUser(String fromUsername, String toUsername) {
-        User from = restTemplate.getForObject("https://auth-service.up.railway.app/auth/by-username/" + fromUsername, User.class);
+        User from = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + fromUsername, User.class);
         
-        User to = restTemplate.getForObject("https://auth-service.up.railway.app/auth/by-username/" + toUsername, User.class);
+        User to = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + toUsername, User.class);
 
         if (from == null || to == null || from.equals(to)) {
             return false;
@@ -56,7 +56,7 @@ public class FollowService {
 
         followRepository.deleteByFollowerAndFollowed(from, to);
 
-        restTemplate.postForObject("https://auth-service.up.railway.app/profile/decrement-follow", Map.of(
+        restTemplate.postForObject("https://exciting-tranquility-production-14e6.up.railway.app/profile/decrement-follow", Map.of(
                 "follower", from.getUsername(),
                 "followed", to.getUsername()
         ), Void.class);
@@ -65,9 +65,9 @@ public class FollowService {
     }
 
     public boolean isFollowing(String fromUsername, String toUsername) {
-        User from = restTemplate.getForObject("https://auth-service.up.railway.app/auth/by-username/" + fromUsername, User.class);
+        User from = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + fromUsername, User.class);
         
-        User to = restTemplate.getForObject("https://auth-service.up.railway.app/auth/by-username/" + toUsername, User.class);
+        User to = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + toUsername, User.class);
 
         if (from == null || to == null || from.equals(to)) {
             return false;

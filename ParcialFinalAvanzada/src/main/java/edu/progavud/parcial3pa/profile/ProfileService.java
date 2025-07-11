@@ -54,7 +54,7 @@ public class ProfileService {
         }
 
         // Si no existe el perfil, obtener el usuario con RestTemplate
-        User user = restTemplate.getForObject("https://auth-service.up.railway.app/auth/by-username/" + username, User.class);
+        User user = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + username, User.class);
 
         if (user == null || user.getId() == null) {
             throw new RuntimeException("No se pudo obtener el usuario desde auth-service");
@@ -110,10 +110,10 @@ public void deleteProfileAndUser(String username) {
     // 1. Eliminar perfil localmente
     profileRepository.delete(perfil);
     
-    restTemplate.delete("https://auth-service.up.railway.app/follow/deleteByUserId/" + userId);
+    restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/follow/deleteByUserId/" + userId);
 
     // 2. Llamar al auth-service para eliminar la cuenta
-    String authServiceUrl = "https://auth-service.up.railway.app/auth/delete/" + userId;
+    String authServiceUrl = "https://exciting-tranquility-production-14e6.up.railway.app/auth/delete/" + userId;
     restTemplate.delete(authServiceUrl);
 }
 
