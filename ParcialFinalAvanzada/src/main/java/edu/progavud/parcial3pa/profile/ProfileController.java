@@ -31,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- *
+ * Controlador REST encargado de manejar las operaciones relacionadas con los perfiles de usuario,
+ * como ver, modificar, eliminar y subir imágenes de perfil.
  * @author hailen
  */
 @RestController
@@ -39,12 +40,19 @@ import org.springframework.web.multipart.MultipartFile;
 @CrossOrigin(origins = "*")
 public class ProfileController {
 
+        /** Servicio que contiene la lógica relacionada con los perfiles de usuario. */
     private final ProfileService profileService;
 
+    /**
+     * Constructor que inyecta el servicio de perfiles.
+     *
+     * @param profileService servicio de perfil
+     */
     @Autowired
     public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
     }
+
 //
 //@PostMapping("/update")
 //public ResponseEntity<Map<String, Object>> updateProfile(
@@ -94,6 +102,14 @@ public class ProfileController {
 //    }
 //}
     
+        /**
+     * Actualiza la biografía y la imagen de perfil de un usuario.
+     *
+     * @param username nombre de usuario cuyo perfil se va a actualizar
+     * @param bio nueva biografía
+     * @param profilePictureUrl URL de la nueva imagen de perfil (opcional)
+     * @return respuesta con el resultado de la operación y el perfil actualizado si fue exitoso
+     */
     @PostMapping("/update")
 public ResponseEntity<Map<String, Object>> updateProfile(
         @RequestParam("username") String username,
@@ -130,61 +146,83 @@ public ResponseEntity<Map<String, Object>> updateProfile(
 
 
 
+        /**
+     * Obtiene el perfil de un usuario por su nombre de usuario.
+     *
+     * @param username nombre de usuario
+     * @return respuesta con el perfil del usuario
+     */
     @GetMapping("/{username}")
     public ResponseEntity<Profile> getProfile(@PathVariable String username) {
         Profile profile = profileService.findByUsername(username);
-
         return ResponseEntity.ok(profile);
     }
 
-@GetMapping("/postsImgs/profile_pictures/{filename:.+}")
-public ResponseEntity<Resource> getImage(@PathVariable String filename) throws IOException {
-    Path imagePath = Paths.get("postsImgs/profile_pictures/" + filename); // ruta relativa al proyecto
-    Resource resource = new UrlResource(imagePath.toUri());
+    /**
+     * Devuelve la imagen de perfil del usuario desde el sistema de archivos.
+     *
+     * @param filename nombre del archivo de imagen
+     * @return recurso de la imagen si existe, o error 404 si no se encuentra
+     * @throws IOException si ocurre un error al acceder al archivo
+     */
+    @GetMapping("/postsImgs/profile_pictures/{filename:.+}")
+    public ResponseEntity<Resource> getImage(@PathVariable String filename) throws IOException {
+        Path imagePath = Paths.get("postsImgs/profile_pictures/" + filename);
+        Resource resource = new UrlResource(imagePath.toUri());
 
-    if (!resource.exists()) {
-        return ResponseEntity.notFound().build();
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(resource);
     }
 
-    return ResponseEntity.ok()
-            .contentType(MediaType.IMAGE_JPEG) // o usa Files.probeContentType(imagePath)
-            .body(resource);
-}
 
-@PostMapping("/increment-follow")
-public void incrementarContadores(@RequestBody Map<String, String> payload) {
-    String follower = payload.get("follower");
-    String followed = payload.get("followed");
-    profileService.incrementCounters(follower, followed);
-}
-
-@PostMapping("/decrement-follow")
-public void decrementarContadores(@RequestBody Map<String, String> payload) {
-    String follower = payload.get("follower");
-    String followed = payload.get("followed");
-    profileService.decrementCounters(follower, followed);
-}
-
-@DeleteMapping("/delete/{username}")
-public ResponseEntity<Map<String, Object>> eliminarPerfil(@PathVariable String username) {
-    Map<String, Object> response = new HashMap<>();
-    try {
-        profileService.deleteProfileAndUser(username);
-        response.put("success", true);
-        response.put("message", "Perfil y cuenta eliminados correctamente.");
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        response.put("success", false);
-        response.put("message", "Error: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    /**
+     * Incrementa los contadores de seguidores y seguidos entre dos usuarios.
+     *
+     * @param payload mapa con los nombres de usuario: follower y followed
+     */
+    @PostMapping("/increment-follow")
+    public void incrementarContadores(@RequestBody Map<String, String> payload) {
+        String follower = payload.get("follower");
+        String followed = payload.get("followed");
+        profileService.incrementCounters(follower, followed);
     }
-}
 
+    /**
+     * Decrementa los contadores de seguidores y seguidos entre dos usuarios.
+     *
+     * @param payload mapa con los nombres de usuario: follower y followed
+     */
+    @PostMapping("/decrement-follow")
+    public void decrementarContadores(@RequestBody Map<String, String> payload) {
+        String follower = payload.get("follower");
+        String followed = payload.get("followed");
+        profileService.decrementCounters(follower, followed);
+    }
 
-
-
-
-
-
+    /**
+     * Elimina el perfil y la cuenta de un usuario por su nombre de usuario.
+     *
+     * @param username nombre del usuario a eliminar
+     * @return respuesta con el resultado de la operación
+     */
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<Map<String, Object>> eliminarPerfil(@PathVariable String username) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            profileService.deleteProfileAndUser(username);
+            response.put("success", true);
+            response.put("message", "Perfil y cuenta eliminados correctamente.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
 }

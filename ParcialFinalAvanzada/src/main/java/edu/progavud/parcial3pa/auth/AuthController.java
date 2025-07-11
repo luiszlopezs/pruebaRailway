@@ -18,33 +18,47 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Controlador REST encargado de gestionar las operaciones de autenticación de usuarios,
+ * como registro, login y obtención de perfiles asociados.
+ *
+ * <p>Este controlador expone los endpoints relacionados con la autenticación bajo la ruta <code>/auth</code>.</p>
+ *
+ * <p>Permite el acceso desde cualquier origen gracias a la anotación {@code @CrossOrigin(origins = "*")}.</p>
+ */
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
 
+    /** Logger para mostrar mensajes en consola. */
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
+    /** Servicio que contiene la lógica de autenticación. */
     private final AuthService authService;
 
+    /** Repositorio para operaciones relacionadas con seguidores. */
     @Autowired
     private FollowRepository followRepository;
 
+    /** Repositorio para operaciones con usuarios. */
     @Autowired
     private UserRepository userRepository;
 
+    /** Repositorio para acceder a los perfiles de usuario. */
     @Autowired
-    private ProfileRepository profileRepository; //Para búsqueda 
+    private ProfileRepository profileRepository;
 
+    /**
+     * Constructor que inyecta el servicio de autenticación.
+     *
+     * @param authService servicio de autenticación
+     */
     @Autowired
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-        @GetMapping("/ping")
-    public String ping() {
-        return "🚀 ¡Tu backend Spring Boot está funcionando en Railway!";
-    }
 
     /**
      * Registro de usuario

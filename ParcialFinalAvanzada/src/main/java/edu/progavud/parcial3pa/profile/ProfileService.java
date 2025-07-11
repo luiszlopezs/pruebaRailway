@@ -12,11 +12,19 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio encargado de manejar la lógica relacionada con los perfiles de usuario,
+ * incluyendo actualizaciones, contadores y eliminación de perfiles.
+ */
 @Service
 public class ProfileService {
 
+        /** Repositorio para acceder y modificar perfiles de usuario. */
     private final ProfileRepository profileRepository;
+
+    /** Cliente HTTP para consumir servicios REST de otros módulos. */
     private final RestTemplate restTemplate;
+
 //    private final RestTemplate restTemplate;
 
     // URL base del microservicio de usuarios (ajusta si usas gateway o puerto distinto)
@@ -45,6 +53,13 @@ public class ProfileService {
         return profileRepository.save(existingProfile);
     }
 
+        /**
+     * Busca un perfil por el nombre de usuario.
+     *
+     * @param username nombre de usuario
+     * @return perfil correspondiente al usuario
+     * @throws IllegalArgumentException si no se encuentra el perfil
+     */
     public Profile findByUsername(String username) {
         // Buscar el perfil existente
         Optional<Profile> existente = profileRepository.findByUsername(username);
@@ -74,27 +89,43 @@ public class ProfileService {
         return nuevoPerfil;
     }
     
+      /**
+     * Incrementa los contadores de "siguiendo" y "seguidores" entre dos perfiles.
+     *
+     * @param followerUsername nombre de usuario del que sigue
+     * @param followedUsername nombre de usuario del que es seguido
+     * @throws NoSuchElementException si alguno de los perfiles no existe
+     */
     @Transactional
-public void incrementCounters(String followerUsername, String followedUsername) {
-    Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();
-    Profile followed = profileRepository.findByUsername(followedUsername).orElseThrow();
+    public void incrementCounters(String followerUsername, String followedUsername) {
+        Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();
+        Profile followed = profileRepository.findByUsername(followedUsername).orElseThrow();
 
-    follower.setFollowing(follower.getFollowing() + 1);
-    followed.setFollowers(followed.getFollowers() + 1);
-    profileRepository.save(follower);
-    profileRepository.save(followed);
-}
+        follower.setFollowing(follower.getFollowing() + 1);
+        followed.setFollowers(followed.getFollowers() + 1);
+        profileRepository.save(follower);
+        profileRepository.save(followed);
+    }
 
-@Transactional
-public void decrementCounters(String followerUsername, String followedUsername) {
-    Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();
-    Profile followed = profileRepository.findByUsername(followedUsername).orElseThrow();
+    /**
+     * Decrementa los contadores de "siguiendo" y "seguidores" entre dos perfiles,
+     * asegurando que no bajen de cero.
+     *
+     * @param followerUsername nombre de usuario del que deja de seguir
+     * @param followedUsername nombre de usuario del que fue dejado de seguir
+     * @throws NoSuchElementException si alguno de los perfiles no existe
+     */
+    @Transactional
+    public void decrementCounters(String followerUsername, String followedUsername) {
+        Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();
+        Profile followed = profileRepository.findByUsername(followedUsername).orElseThrow();
 
-    follower.setFollowing(Math.max(0, follower.getFollowing() - 1));
-    followed.setFollowers(Math.max(0, followed.getFollowers() - 1));
-    profileRepository.save(follower);
-    profileRepository.save(followed);
-}
+        follower.setFollowing(Math.max(0, follower.getFollowing() - 1));
+        followed.setFollowers(Math.max(0, followed.getFollowers() - 1));
+        profileRepository.save(follower);
+        profileRepository.save(followed);
+    }
+
 
 //Elimina perfil, y llama al servicio de Auth para eliminar la cuenta asociada
 public void deleteProfileAndUser(String username) {

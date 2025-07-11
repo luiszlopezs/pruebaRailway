@@ -9,7 +9,16 @@ import edu.progavud.parcial3pa.home.Comment;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+/**
+ * Repositorio para acceder y manejar los comentarios en la base de datos.
+ */
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    List<Comment> findByPostIdOrderByCreatedAtAsc(Long postId);
 
+    /**
+     * Busca los comentarios de una publicación por su ID, ordenados por fecha de creación ascendente.
+     *
+     * @param postId ID de la publicación
+     * @return lista de comentarios asociados a la publicación
+     */
+    List<Comment> findByPostIdOrderByCreatedAtAsc(Long postId);
 }

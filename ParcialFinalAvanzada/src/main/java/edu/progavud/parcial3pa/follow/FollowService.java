@@ -10,19 +10,34 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Servicio que contiene la lógica para gestionar las relaciones de seguimiento entre usuarios.
+ */
 @Service
 @Transactional
 public class FollowService {
 
+        /** Repositorio para acceder y modificar relaciones de seguimiento. */
     @Autowired
     private FollowRepository followRepository;
 
+    /** Repositorio para acceder a los datos de los usuarios. */
     @Autowired
     private UserRepository userRepository;
 
+    /** Cliente HTTP para realizar solicitudes a otros servicios. */
     @Autowired
     private RestTemplate restTemplate;
 
+
+        /**
+     * Crea una relación de seguimiento entre dos usuarios si aún no existe.
+     * También envía una solicitud a un servicio externo para actualizar los contadores de seguimiento.
+     *
+     * @param fromUsername nombre del usuario que sigue
+     * @param toUsername nombre del usuario que será seguido
+     * @return true si la operación fue exitosa, false si los usuarios no existen o son iguales
+     */
     @Transactional
     public boolean followUser(String fromUsername, String toUsername) {
         User from = userRepository.findByUsername(fromUsername).orElse(null);
@@ -44,10 +59,18 @@ public class FollowService {
         return true;
     }
 
+
+        /**
+     * Elimina una relación de seguimiento entre dos usuarios.
+     * También envía una solicitud a un servicio externo para actualizar los contadores de seguimiento.
+     *
+     * @param fromUsername nombre del usuario que deja de seguir
+     * @param toUsername nombre del usuario que es dejado de seguir
+     * @return true si la operación fue exitosa, false si los usuarios no existen o son iguales
+     */
     @Transactional
     public boolean unfollowUser(String fromUsername, String toUsername) {
         User from = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + fromUsername, User.class);
-        
         User to = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + toUsername, User.class);
 
         if (from == null || to == null || from.equals(to)) {
@@ -64,9 +87,16 @@ public class FollowService {
         return true;
     }
 
+
+        /**
+     * Verifica si un usuario está siguiendo a otro.
+     *
+     * @param fromUsername nombre del usuario que podría estar siguiendo
+     * @param toUsername nombre del usuario que podría estar siendo seguido
+     * @return true si existe la relación de seguimiento, false en caso contrario
+     */
     public boolean isFollowing(String fromUsername, String toUsername) {
         User from = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + fromUsername, User.class);
-        
         User to = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + toUsername, User.class);
 
         if (from == null || to == null || from.equals(to)) {
@@ -75,9 +105,15 @@ public class FollowService {
 
         return followRepository.existsByFollowerAndFollowed(from, to);
     }
-    
-        public void deleteAllByUserId(Long userId) {
+
+    /**
+     * Elimina todas las relaciones de seguimiento en las que el usuario es seguidor o seguido.
+     *
+     * @param userId ID del usuario
+     */
+    public void deleteAllByUserId(Long userId) {
         followRepository.deleteAllByUserId(userId);
     }
+
 
 }
