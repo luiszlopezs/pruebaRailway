@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Perfil</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #fafafa;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                display: flex;
+                height: 100vh;
+            }
+
+            .sidebar {
+                width: 200px;
+                background: white;
+                border-right: 1px solid #ddd;
+                padding: 20px 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sidebar .logo {
+                font-size: 22px;
+                font-weight: bold;
+                color: #833ab4;
+                margin-bottom: 30px;
+                text-align: center;
+            }
+
+            .menu button {
+                background: none;
+                border: none;
+                text-align: left;
+                font-size: 16px;
+                margin-bottom: 15px;
+                cursor: pointer;
+                padding: 8px 10px;
+                border-radius: 6px;
+                width: 100%;
+                transition: background 0.2s;
+            }
+
+            .menu button:hover {
+                background-color: #f0f0f0;
+            }
+
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .topbar {
+                background: white;
+                padding: 10px 20px;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .search-bar {
+                position: relative;
+                max-width: 400px;
+            }
+
+            .search-bar input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+            }
+
+            .profile-container {
+                padding: 20px;
+                max-width: 900px;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .profile {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                width: 100%;
+            }
+
+            .profile-pic {
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #ccc;
+                cursor: pointer;
+            }
+
+            .info {
+                flex: 1;
+            }
+
+            .counts {
+                display: flex;
+                gap: 20px;
+                margin: 10px 0;
+            }
+
+            .counts div {
+                font-weight: bold;
+            }
+
+            .bio,
+            #username {
+                white-space: pre-wrap;
+                outline: none;
+            }
+
+            .edit-btn {
+                background-color: #0095f6;
+                color: white;
+                padding: 6px 12px;
+                border: none;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+
+            .gallery {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px;
+                margin-top: 40px;
+                width: 100%;
+            }
+
+            .gallery img {
+                width: 100%;
+                aspect-ratio: 1;
+                object-fit: cover;
+            }
+
+            /* Modal flotante */
+            #fotoModalOverlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.4);
+                z-index: 9999;
+            }
+
+            #fotoModalOverlay .modal-content {
+                background: white;
+                width: 90%;
+                max-width: 400px;
+                margin: 100px auto;
+                padding: 20px;
+                border-radius: 10px;
+                position: relative;
+            }
+
+            #fotoModalOverlay button.close {
+                position: absolute;
+                top: 8px;
+                right: 10px;
+                background: transparent;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="logo">Instagram</div>
+                <nav class="menu">
+                    <button onclick="window.location.href = 'home.html'">🏠 Inicio</button>
+                    <button onclick="document.getElementById('searchInput').focus()">🔍 Buscar</button>
+                    <button onclick="window.location.href = 'profile.html'">👤 Perfil</button>
+                    <button onclick="alert('Sube posts desde la sección principal')">➕ Crear</button>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <header class="topbar">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Buscar usuarios..." />
+                    </div>
+                </header>
+
+                <div class="profile-container">
+                    <div class="profile">
+                        <img id="profilePicture" class="profile-pic" src="" alt="Foto de perfil" />
+                        <div class="info">
+                            <h2 id="username">username</h2>
+                            <div class="counts">
+                                <div><span id="postsCount">0</span> publicaciones</div>
+                                <div><span id="followersCount">0</span> seguidores</div>
+                                <div><span id="followingCount">0</span> seguidos</div>
+                            </div>
+                            <p id="bio" class="bio" contenteditable="false">Aquí va tu biografía.</p>
+                            <button id="editBtn" class="edit-btn">Editar perfil</button>
+                        </div>
+                    </div>
+
+                    <!-- Galería -->
+                    <div class="gallery" id="gallery"></div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal flotante -->
+        <div id="fotoModalOverlay">
+            <div class="modal-content">
+                <button class="close" onclick="cerrarFotoModal()">×</button>
+                <h3>Cambiar foto de perfil</h3>
+                <input type="text" id="profilePictureLinkInput" placeholder="Pega aquí el link de la imagen" style="width: 100%; padding: 10px;" />
+                <button onclick="guardarLinkFoto()" style="margin-top: 10px; background-color: #0095f6; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">Guardar</button>
+            </div>
+        </div>
+
+        <script>
+            let editing = false;
+
+            async function cargarPerfil(username) {
+                const response = await fetch(`http://localhost:8091/profile/${username}`);
+                const perfil = await response.json();
+                console.log("Perfil recibido:", perfil);
+                document.getElementById("username").textContent = perfil.user.username;
+                document.getElementById("bio").textContent = perfil.bio;
+                document.getElementById("profilePicture").src = perfil.profilePicture ;
+                document.getElementById("followersCount").textContent = perfil.followers;
+                document.getElementById("followingCount").textContent = perfil.following;
+            }
+
+            async function cargarGaleria(userId) {
+                const response = await fetch(`http://localhost:8091/posts/galleryPost?userId=${userId}`);
+                const posts = await response.json();
+
+                const galeria = document.getElementById("gallery");
+                galeria.innerHTML = "";
+
+                posts.forEach(post => {
+                    const img = document.createElement("img");
+                    img.src = post.imageUrl;
+                    img.alt = "Post";
+                    galeria.appendChild(img);
+                });
+                document.getElementById("postsCount").textContent = posts.length;
+            }
+
+            document.getElementById("editBtn").addEventListener("click", async () => {
+                const bio = document.getElementById("bio");
+
+                if (!editing) {
+                    // Activar edición
+                    editing = true;
+                    bio.contentEditable = true;
+                    document.getElementById("editBtn").textContent = "Guardar cambios";
+                } else {
+                    // Guardar cambios
+                    const username = localStorage.getItem("username");
+                    const bioText = bio.innerText.trim();
+
+                    const body = new URLSearchParams();
+                    body.append("username", username);
+                    body.append("bio", bioText);
+                    // No se envía imagen (dejarla vacía)
+                    body.append("profilePicture", "");
+
+                    try {
+                        const response = await fetch("http://localhost:8091/profile/update", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                            body: body
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            alert("Biografía actualizada.");
+                        } else {
+                            alert("Error: " + result.message);
+                        }
+                    } catch (err) {
+                        console.error("Error al actualizar bio:", err);
+                        alert("Error de red.");
+                    }
+
+                    bio.contentEditable = false;
+                    document.getElementById("editBtn").textContent = "Editar perfil";
+                    editing = false;
+                }
+            });
+
+
+            document.getElementById("profilePicture").addEventListener("click", () => {
+                if (editing)
+                    abrirFotoModal();
+            });
+
+            function abrirFotoModal() {
+                document.getElementById("fotoModalOverlay").style.display = "block";
+            }
+
+            function cerrarFotoModal() {
+                document.getElementById("fotoModalOverlay").style.display = "none";
+            }
+
+            async function guardarLinkFoto() {
+                const imageUrl = document.getElementById("profilePictureLinkInput").value.trim();
+                const username = localStorage.getItem("username");
+                const bio = document.getElementById("bio").innerText.trim();
+
+                if (!imageUrl) {
+                    alert("Debes ingresar un link.");
+                    return;
+                }
+
+                const body = new URLSearchParams();
+                body.append("username", username);
+                body.append("bio", bio);
+                body.append("profilePicture", imageUrl);
+
+                try {
+                    const response = await fetch("http://localhost:8091/profile/update", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                        body: body
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        document.getElementById("profilePicture").src = imageUrl;
+                        cerrarFotoModal();
+                        alert("Foto actualizada.");
+                    } else {
+                        alert("Error: " + result.message);
+                    }
+                } catch (err) {
+                    console.error("Error al actualizar foto:", err);
+                    alert("Error de red.");
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const username = localStorage.getItem("username");
+                const userId = localStorage.getItem("userId");
+                cargarPerfil(username);
+                cargarGaleria(userId);
+            });
+        </script>
+    </body>
+</html>
