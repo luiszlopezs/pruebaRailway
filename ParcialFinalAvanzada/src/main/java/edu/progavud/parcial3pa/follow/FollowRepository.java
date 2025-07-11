@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Repositorio para manejar las relaciones de seguimiento entre usuarios.
  */
 public interface FollowRepository extends JpaRepository<Follow, Long> {
-    
-    /**
+        /**
      * Busca una relación de seguimiento entre dos usuarios.
      *
      * @param follower el usuario que sigue
@@ -22,8 +21,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @return la relación si existe
      */
     Optional<Follow> findByFollowerAndFollowed(User follower, User followed);
-    
-    /**
+        /**
      * Verifica si existe una relación de seguimiento entre dos usuarios.
      *
      * @param follower el usuario que sigue
@@ -31,18 +29,15 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @return true si existe la relación, false si no
      */
     boolean existsByFollowerAndFollowed(User follower, User followed);
-    
-    /**
+        /**
      * Elimina una relación de seguimiento entre dos usuarios.
      *
      * @param follower el usuario que sigue
      * @param followed el usuario que es seguido
      */
-    @Modifying
-    @Transactional
     void deleteByFollowerAndFollowed(User follower, User followed);
     
-    /**
+        /**
      * Elimina todas las relaciones en las que el usuario es seguidor o seguido.
      * Se usa al eliminar una cuenta de usuario.
      *
