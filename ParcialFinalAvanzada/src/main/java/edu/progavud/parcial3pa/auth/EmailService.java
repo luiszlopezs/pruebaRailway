@@ -9,12 +9,20 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+/**
+ * Servicio encargado de enviar correos electrónicos desde la aplicación.
+ */
 @Service
 public class EmailService {
-
+/** Componente para enviar correos electrónicos. */
     @Autowired
     private JavaMailSender mailSender;
-
+    /**
+     * Envía un correo de confirmación de cuenta al usuario.
+     *
+     * @param destinatario correo electrónico del destinatario
+     * @param nombreUsuario nombre del usuario registrado
+     */
     public void enviarConfirmacionCuenta(String destinatario, String nombreUsuario) {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setTo(destinatario);

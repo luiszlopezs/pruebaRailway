@@ -23,105 +23,44 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Servicio que contiene la lógica para gestionar las publicaciones, comentarios
+ * y "me gusta" de los usuarios.
+ */
 @Service
 public class PostService {
 
+    /**
+     * Carpeta donde se guardan las imágenes de las publicaciones.
+     */
     private final String uploadDir = "postImages";
-
+    
+    /** Repositorio para manejar publicaciones. */
     @Autowired
     private PostRepository postRepo;
+     /** Repositorio para manejar usuarios. */
     @Autowired
     private UserRepository userRepo;
+     /** Repositorio para manejar "me gusta" en publicaciones. */
     @Autowired
     private PostLikeRepository postLikeRepo;
+    /** Repositorio para manejar comentarios en publicaciones. */
     @Autowired
     private CommentRepository commentRepo;
-
+/** Repositorio para acceder a los perfiles de usuario. */
     @Autowired
     private ProfileRepository profileRepo;
 
-//    public Map<String, Object> uploadPost(Long userId, MultipartFile file, String description) {
-//        Map<String, Object> response = new HashMap<>();
-//        try {
-//            User user = userRepo.findById(userId).orElse(null);
-//            if (user == null) {
-//                response.put("success", false);
-//                response.put("message", "Usuario no encontrado");
-//                return response;
-//            }
-//
-//            File dir = new File(uploadDir);
-//            if (!dir.exists()) dir.mkdirs();
-//
-//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-//            File destination = new File(dir, fileName);
-//            file.transferTo(destination);
-//
-//            Post post = new Post();
-//            post.setUser(user);
-//            post.setImageUrl("/" + uploadDir + "/" + fileName);
-//            post.setDescription(description);
-//            post.setLikes(0);
-//            post.setCreatedAt(LocalDateTime.now());
-//
-//            postRepo.save(post);
-//
-//            response.put("success", true);
-//            return response;
-//
-//        } catch (IOException e) {
-//            response.put("success", false);
-//            response.put("message", "Error al guardar imagen");
-//            return response;
-//        }
-//    }
-//    public Map<String, Object> uploadPost(Long userId, MultipartFile file, String description) {
-//
-//        Map<String, Object> response = new HashMap<>();
-//        try {
-//            User user = userRepo.findById(userId).orElse(null);
-//
-//            if (user == null) {
-//
-//                response.put("success", false);
-//                response.put("message", "Usuario no encontrado");
-//                return response;
-//            }
-//
-//            // Usa la misma carpeta que en updateProfile
-//            String uploadDir = new File("postsImgs/").getAbsolutePath();
-//
-//            File dir = new File(uploadDir);
-//            if (!dir.exists()) {
-//                dir.mkdirs();
-//            }
-//
-//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-//            File destination = new File(dir, fileName);
-//            file.transferTo(destination);
-//
-//            Post post = new Post();
-//            post.setUser(user);
-//            // Ruta relativa para mostrar en frontend
-//            post.setImageUrl("/postsImgs/" + fileName);
-//            post.setDescription(description);
-//            post.setLikes(0);
-//            post.setCreatedAt(LocalDateTime.now());
-//
-//            postRepo.save(post);
-//
-//            response.put("success", true);
-//            return response;
-//
-//        } catch (IOException e) {
-//            response.put("success", false);
-//            response.put("message", "Error al guardar imagen");
-//            return response;
-//        }
-//    }
     
-    
-        public void crearPostDesdeLink(Long userId, String imageUrl, String description) {
+          /**
+     * Crea una nueva publicación usando un enlace de imagen.
+     *
+     * @param userId ID del usuario que crea la publicación
+     * @param imageUrl URL de la imagen que se va a publicar
+     * @param description descripción de la publicación
+     * @throws IllegalArgumentException si el usuario no existe
+     */
+    public void crearPostDesdeLink(Long userId, String imageUrl, String description) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
@@ -134,9 +73,15 @@ public class PostService {
         postRepo.save(post);
     }
 
-//    public List<Post> getAllPosts() {
-//        return postRepo.findAllByOrderByCreatedAtDesc();
-//    }
+
+                /**
+     * Obtiene todas las publicaciones ordenadas por fecha de creación descendente,
+     * incluyendo información del usuario, cantidad de "me gusta", si el usuario actual ha dado "me gusta",
+     * y la lista de comentarios de cada publicación.
+     *
+     * @param currentUserId ID del usuario actual (opcional) para verificar si ha dado "me gusta"
+     * @return lista de mapas con la información detallada de cada publicación
+     */
     public List<Map<String, Object>> getAllPosts(Long currentUserId) {
         List<Post> posts = postRepo.findAllByOrderByCreatedAtDesc();
         List<Map<String, Object>> resultado = new ArrayList<>();
@@ -174,23 +119,14 @@ public class PostService {
         return resultado;
     }
 
-//    public Map<String, Object> likePost(Long postId) {
-//        Map<String, Object> response = new HashMap<>();
-//        Optional<Post> postOpt = postRepo.findById(postId);
-//        if (postOpt.isEmpty()) {
-//            response.put("success", false);
-//            response.put("message", "Post no encontrado");
-//            return response;
-//        }
-//
-//        Post post = postOpt.get();
-//        post.setLikes(post.getLikes() + 1);
-//        postRepo.save(post);
-//
-//        response.put("success", true);
-//        response.put("likes", post.getLikes());
-//        return response;
-//    }
+        /**
+     * Agrega un comentario a una publicación por parte de un usuario.
+     *
+     * @param postId ID de la publicación
+     * @param userId ID del usuario que comenta
+     * @param text contenido del comentario
+     * @return mapa con el resultado de la operación (éxito o error con mensaje)
+     */
     public Map<String, Object> commentPost(Long postId, Long userId, String text) {
         Map<String, Object> response = new HashMap<>();
         Post post = postRepo.findById(postId).orElse(null);
@@ -214,6 +150,14 @@ public class PostService {
         return response;
     }
 
+            /**
+     * Alterna el estado de "me gusta" en una publicación para un usuario.
+     * Si ya ha dado "me gusta", lo elimina; si no, lo agrega.
+     *
+     * @param postId ID de la publicación
+     * @param userId ID del usuario
+     * @return respuesta con el total actualizado de "me gusta" y el estado de la operación
+     */
     public ResponseEntity<Map<String, Object>> toggleLike(Long postId, Long userId) {
         Map<String, Object> response = new HashMap<>();
 
@@ -246,7 +190,14 @@ public class PostService {
         response.put("likes", totalLikes);
         return ResponseEntity.ok(response);
     }
-
+    
+            /**
+     * Obtiene las publicaciones realizadas por un usuario específico.
+     * Si no se proporciona el ID, retorna todas las publicaciones.
+     *
+     * @param userId ID del usuario (opcional)
+     * @return lista de publicaciones del usuario o todas si el ID es nulo
+     */
     public List<Post> obtenerPostsPorUsuario(Long userId) {
         if (userId != null) {
             return postRepo.findByUserId(userId);

@@ -16,12 +16,17 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
+
+/**
+ * Servicio encargado de manejar la lógica relacionada con los perfiles de usuario,
+ * incluyendo actualizaciones, contadores y eliminación de perfiles.
+ */
 @Service
 public class ProfileService {
-
+/** Repositorio para acceder y modificar perfiles de usuario. */
     @Autowired
     private ProfileRepository profileRepository;
-    
+    /** Cliente HTTP para consumir servicios REST de otros módulos. */
     @Autowired
     private PostRepository postRepository;
     
@@ -40,12 +45,16 @@ public class ProfileService {
     @Autowired
     private RestTemplate restTemplate;
 
+    
     @Autowired
     public ProfileService(ProfileRepository profileRepository, RestTemplate restTemplate) {
         this.profileRepository = profileRepository;
         this.restTemplate = restTemplate;
     }
 
+        /**
+     * Actualiza solo bio, profilePicture y username del usuario asociado.
+     */
     public Profile updateProfile(Profile updatedProfile) {
         Profile existingProfile = profileRepository.findByUsername(updatedProfile.getUser().getUsername())
                 .orElseThrow(() -> new RuntimeException(
@@ -61,6 +70,13 @@ public class ProfileService {
         return profileRepository.save(existingProfile);
     }
 
+            /**
+     * Busca un perfil por el nombre de usuario.
+     *
+     * @param username nombre de usuario
+     * @return perfil correspondiente al usuario
+     * @throws IllegalArgumentException si no se encuentra el perfil
+     */
     public Profile findByUsername(String username) {
         Optional<Profile> existente = profileRepository.findByUsername(username);
 
@@ -87,6 +103,13 @@ public class ProfileService {
         return nuevoPerfil;
     }
 
+          /**
+     * Incrementa los contadores de "siguiendo" y "seguidores" entre dos perfiles.
+     *
+     * @param followerUsername nombre de usuario del que sigue
+     * @param followedUsername nombre de usuario del que es seguido
+     * @throws NoSuchElementException si alguno de los perfiles no existe
+     */
     @Transactional
     public void incrementCounters(String followerUsername, String followedUsername) {
         Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();
@@ -98,6 +121,14 @@ public class ProfileService {
         profileRepository.save(followed);
     }
 
+        /**
+     * Decrementa los contadores de "siguiendo" y "seguidores" entre dos perfiles,
+     * asegurando que no bajen de cero.
+     *
+     * @param followerUsername nombre de usuario del que deja de seguir
+     * @param followedUsername nombre de usuario del que fue dejado de seguir
+     * @throws NoSuchElementException si alguno de los perfiles no existe
+     */
     @Transactional
     public void decrementCounters(String followerUsername, String followedUsername) {
         Profile follower = profileRepository.findByUsername(followerUsername).orElseThrow();

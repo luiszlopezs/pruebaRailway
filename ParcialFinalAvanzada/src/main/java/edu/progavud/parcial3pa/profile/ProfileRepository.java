@@ -7,9 +7,19 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * Repositorio para acceder y manejar los perfiles de usuario en la base de
+ * datos.
+ */
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
-        // ✅ Buscar perfil por username del usuario
+
+    /**
+     * Busca un perfil por el nombre de usuario asociado.
+     *
+     * @param username nombre de usuario
+     * @return perfil encontrado, si existe
+     */
     @Query("SELECT p FROM Profile p WHERE p.user.username = :username")
     Optional<Profile> findByUsername(@Param("username") String username);
 }

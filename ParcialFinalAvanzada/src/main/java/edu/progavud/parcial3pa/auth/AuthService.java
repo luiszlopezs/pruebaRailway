@@ -12,20 +12,32 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Servicio encargado de manejar la lógica relacionada con la autenticación de usuarios.
+ */
 @Service
 @Transactional
 public class AuthService {
 
+        /** Logger para mostrar mensajes en consola. */
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-
+    
+    /** Repositorio para operaciones con usuarios. */
     private final UserRepository userRepository;
 
+     /** Servicio para el envío de correos electrónicos. */
     @Autowired
     private EmailService emailService;
 
+    /** Cliente HTTP para consumir servicios externos. */
     @Autowired
     private RestTemplate restTemplate;
 
+     /**
+     * Constructor que inyecta el repositorio de usuarios.
+     *
+     * @param userRepository repositorio de usuarios
+     */
     @Autowired
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;

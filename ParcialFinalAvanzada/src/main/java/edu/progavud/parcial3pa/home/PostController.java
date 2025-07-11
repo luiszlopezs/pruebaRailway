@@ -18,26 +18,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controlador REST encargado de manejar las operaciones relacionadas con las publicaciones de los usuarios.
+ */
 @RestController
 @RequestMapping("/posts")
 @CrossOrigin(origins = "*")
 public class PostController {
 
+           /** Servicio que contiene la lógica relacionada con las publicaciones. */
     @Autowired
     private PostService postService;
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<?> uploadPost(
-//            @RequestParam("userId") Long userId,
-//            @RequestParam("file") MultipartFile file,
-//            @RequestParam("description") String description
-//    ) {
-//        Map<String, Object> response = postService.uploadPost(userId, file, description);
-//        return response.get("success").equals(true)
-//                ? ResponseEntity.ok(response)
-//                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-//    }
 
+    
+      /**
+     * Crea una nueva publicación usando un enlace de imagen.
+     *
+     * @param userId ID del usuario que crea la publicación
+     * @param imageUrl URL de la imagen que se desea publicar
+     * @param description descripción de la publicación
+     * @return respuesta indicando si la operación fue exitosa o si ocurrió un error
+     */
     @PostMapping("/upload-link")
     public ResponseEntity<?> uploadPostDesdeLink(@RequestParam Long userId,
                                                  @RequestParam String imageUrl,
@@ -52,25 +54,47 @@ public class PostController {
         }
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<Post>> getAllPosts() {
-//        return ResponseEntity.ok(postService.getAllPosts());
-//    }
+        /**
+     * Obtiene todas las publicaciones, opcionalmente filtradas por usuario.
+     *
+     * @param userId ID del usuario (opcional)
+     * @return lista de publicaciones en formato de mapa
+     */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllPosts(@RequestParam(required = false) Long userId) {
         return ResponseEntity.ok(postService.getAllPosts(userId));
     }
 
+        /**
+     * Obtiene las publicaciones en formato de galería, opcionalmente filtradas por usuario.
+     *
+     * @param userId ID del usuario (opcional)
+     * @return lista de publicaciones
+     */
     @GetMapping("/galleryPost")
     public List<Post> obtenerPosts(@RequestParam(required = false) Long userId) {
         return postService.obtenerPostsPorUsuario(userId);
     }
 
+        /**
+     * Alterna el estado de "me gusta" para una publicación por parte de un usuario.
+     *
+     * @param id ID de la publicación
+     * @param userId ID del usuario que da o quita el "me gusta"
+     * @return respuesta con el estado actualizado del "me gusta"
+     */
     @PostMapping("/{id}/like")
     public ResponseEntity<Map<String, Object>> toggleLike(@PathVariable Long id, @RequestParam Long userId) {
         return postService.toggleLike(id, userId);
     }
 
+           /**
+     * Agrega un comentario a una publicación específica.
+     *
+     * @param postId ID de la publicación que se va a comentar
+     * @param payload mapa que contiene el ID del usuario y el texto del comentario
+     * @return respuesta indicando si la operación fue exitosa o si ocurrió un error
+     */
     @PostMapping("/{postId}/comment")
     public ResponseEntity<?> commentPost(
             @PathVariable Long postId,
