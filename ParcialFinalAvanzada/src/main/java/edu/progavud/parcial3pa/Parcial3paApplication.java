@@ -16,26 +16,25 @@ public class Parcial3paApplication {
         SpringApplication.run(Parcial3paApplication.class, args);
     }
 
-@Bean
-public WebMvcConfigurer corsConfigurer() {
-    return new WebMvcConfigurer() {
-        @Override
-        public void addCorsMappings(CorsRegistry registry) {
-            registry.addMapping("/**") // 🔥 Aplica CORS a todos los endpoints
-                    .allowedOrigins("*") // ✅ tu frontend local
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Opciones necesarias para fetch con JSON
-                    .allowedHeaders("*")
-                    .allowCredentials(true)
-                    .maxAge(3600);
-        }
-    };
-}
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOriginPatterns("*") // ✅ Acepta cualquier origen de forma compatible con allowCredentials
+                        .allowedMethods("*") // ✅ Acepta cualquier método (GET, POST, etc)
+                        .allowedHeaders("*") // ✅ Acepta cualquier cabecera
+                        .allowCredentials(true) // ✅ Permite enviar cookies / sesiones si se usa
+                        .maxAge(3600);
+            }
+        };
+    }
 
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
 
-        @Bean
-        public RestTemplate restTemplate() {
-            return new RestTemplate();
-        
     }
 
 }
