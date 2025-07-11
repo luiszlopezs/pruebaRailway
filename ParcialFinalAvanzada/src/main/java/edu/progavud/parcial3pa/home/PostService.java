@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Servicio que contiene la lógica para gestionar las publicaciones, comentarios
@@ -34,25 +35,28 @@ public class PostService {
      * Carpeta donde se guardan las imágenes de las publicaciones.
      */
     private final String uploadDir = "postImages";
-    
-    /** Repositorio para manejar publicaciones. */
+
+    /**
+     * Repositorio para manejar publicaciones.
+     */
     @Autowired
     private PostRepository postRepo;
-     /** Repositorio para manejar usuarios. */
-    @Autowired
-    private UserRepository userRepo;
-     /** Repositorio para manejar "me gusta" en publicaciones. */
+
+    /**
+     * Repositorio para manejar "me gusta" en publicaciones.
+     */
     @Autowired
     private PostLikeRepository postLikeRepo;
-    /** Repositorio para manejar comentarios en publicaciones. */
+    /**
+     * Repositorio para manejar comentarios en publicaciones.
+     */
     @Autowired
     private CommentRepository commentRepo;
-/** Repositorio para acceder a los perfiles de usuario. */
-    @Autowired
-    private ProfileRepository profileRepo;
 
-    
-          /**
+    @Autowired
+    private RestTemplate restTemplate;
+
+    /**
      * Crea una nueva publicación usando un enlace de imagen.
      *
      * @param userId ID del usuario que crea la publicación
@@ -61,9 +65,9 @@ public class PostService {
      * @throws IllegalArgumentException si el usuario no existe
      */
     public void crearPostDesdeLink(Long userId, String imageUrl, String description) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-
+        //User user = userRepo.findById(userId)
+        //        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        User user = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/" + userId, User.class);
         Post post = new Post();
         post.setUser(user);
         post.setImageUrl(imageUrl);
@@ -73,13 +77,14 @@ public class PostService {
         postRepo.save(post);
     }
 
-
-                /**
-     * Obtiene todas las publicaciones ordenadas por fecha de creación descendente,
-     * incluyendo información del usuario, cantidad de "me gusta", si el usuario actual ha dado "me gusta",
-     * y la lista de comentarios de cada publicación.
+    /**
+     * Obtiene todas las publicaciones ordenadas por fecha de creación
+     * descendente, incluyendo información del usuario, cantidad de "me gusta",
+     * si el usuario actual ha dado "me gusta", y la lista de comentarios de
+     * cada publicación.
      *
-     * @param currentUserId ID del usuario actual (opcional) para verificar si ha dado "me gusta"
+     * @param currentUserId ID del usuario actual (opcional) para verificar si
+     * ha dado "me gusta"
      * @return lista de mapas con la información detallada de cada publicación
      */
     public List<Map<String, Object>> getAllPosts(Long currentUserId) {
@@ -119,7 +124,7 @@ public class PostService {
         return resultado;
     }
 
-        /**
+    /**
      * Agrega un comentario a una publicación por parte de un usuario.
      *
      * @param postId ID de la publicación
@@ -130,7 +135,7 @@ public class PostService {
     public Map<String, Object> commentPost(Long postId, Long userId, String text) {
         Map<String, Object> response = new HashMap<>();
         Post post = postRepo.findById(postId).orElse(null);
-        User user = userRepo.findById(userId).orElse(null);
+        User user = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/" + userId, User.class);
 
         if (post == null || user == null) {
             response.put("success", false);
@@ -150,28 +155,73 @@ public class PostService {
         return response;
     }
 
-            /**
-     * Alterna el estado de "me gusta" en una publicación para un usuario.
-     * Si ya ha dado "me gusta", lo elimina; si no, lo agrega.
+    /**
+     * Alterna el estado de "me gusta" en una publicación para un usuario. Si ya
+     * ha dado "me gusta", lo elimina; si no, lo agrega.
      *
      * @param postId ID de la publicación
      * @param userId ID del usuario
-     * @return respuesta con el total actualizado de "me gusta" y el estado de la operación
+     * @return respuesta con el total actualizado de "me gusta" y el estado de
+     * la operación
      */
+//    public ResponseEntity<Map<String, Object>> toggleLike(Long postId, Long userId) {
+//        Map<String, Object> response = new HashMap<>();
+//
+//        Optional<Post> postOpt = postRepo.findById(postId);
+//        User userOpt = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/" + userId, User.class);
+//
+//        if (postOpt.isEmpty() || userOpt.isEmpty()) {
+//            response.put("success", false);
+//            response.put("message", "Post o usuario no encontrado");
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        }
+//
+//        Post post = postOpt.get();
+//        User user = userOpt.get();
+//
+//        Optional<PostLike> postLike = postLikeRepo.findByUserIdAndPostId(user.getId(), post.getId());
+//
+//        if (postLike.isPresent()) {
+//            postLikeRepo.delete(postLike.get());
+//        } else {
+//            PostLike nuevoLike = new PostLike();
+//            nuevoLike.setPost(post);
+//            nuevoLike.setUser(user);
+//            postLikeRepo.save(nuevoLike);
+//        }
+//
+//        int totalLikes = postLikeRepo.countByPostId(post.getId());
+//
+//        response.put("success", true);
+//        response.put("likes", totalLikes);
+//        return ResponseEntity.ok(response);
+//    }
     public ResponseEntity<Map<String, Object>> toggleLike(Long postId, Long userId) {
         Map<String, Object> response = new HashMap<>();
 
         Optional<Post> postOpt = postRepo.findById(postId);
-        Optional<User> userOpt = userRepo.findById(userId);
-
-        if (postOpt.isEmpty() || userOpt.isEmpty()) {
+        if (postOpt.isEmpty()) {
             response.put("success", false);
-            response.put("message", "Post o usuario no encontrado");
+            response.put("message", "Post no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        User user;
+        try {
+            user = restTemplate.getForObject(
+                    "https://exciting-tranquility-production-14e6.up.railway.app/auth/" + userId,
+                    User.class
+            );
+            if (user == null) {
+                throw new RuntimeException(); // fallback en caso de null
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         Post post = postOpt.get();
-        User user = userOpt.get();
 
         Optional<PostLike> postLike = postLikeRepo.findByUserIdAndPostId(user.getId(), post.getId());
 
@@ -190,10 +240,10 @@ public class PostService {
         response.put("likes", totalLikes);
         return ResponseEntity.ok(response);
     }
-    
-            /**
-     * Obtiene las publicaciones realizadas por un usuario específico.
-     * Si no se proporciona el ID, retorna todas las publicaciones.
+
+    /**
+     * Obtiene las publicaciones realizadas por un usuario específico. Si no se
+     * proporciona el ID, retorna todas las publicaciones.
      *
      * @param userId ID del usuario (opcional)
      * @return lista de publicaciones del usuario o todas si el ID es nulo
@@ -205,4 +255,30 @@ public class PostService {
             return postRepo.findAll();
         }
     }
+
+    public void deleteLikesByUserId(Long userId) {
+        postLikeRepo.deleteByUserId(userId);
+    }
+
+    public void deleteCommentsByUserId(Long userId) {
+        commentRepo.deleteByUserId(userId);
+    }
+
+    public List<Post> getPostsByUserId(Long userId) {
+        return postRepo.findByUserId(userId);
+    }
+
+    public void deleteCommentsByPostId(Long postId) {
+        commentRepo.deleteByPostId(postId);
+    }
+
+    public void deleteLikesByPostId(Long postId) {
+        postLikeRepo.deleteByPostId(postId);
+    }
+
+    public void deletePostsByUserId(Long userId) {
+        postRepo.deleteByUserId(userId);
+    }
+
+
 }

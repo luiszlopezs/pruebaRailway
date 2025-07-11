@@ -19,31 +19,33 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Controlador REST encargado de manejar las operaciones relacionadas con las publicaciones de los usuarios.
+ * Controlador REST encargado de manejar las operaciones relacionadas con las
+ * publicaciones de los usuarios.
  */
 @RestController
 @RequestMapping("/posts")
 @CrossOrigin(origins = "*")
 public class PostController {
 
-           /** Servicio que contiene la lógica relacionada con las publicaciones. */
+    /**
+     * Servicio que contiene la lógica relacionada con las publicaciones.
+     */
     @Autowired
     private PostService postService;
 
-
-    
-      /**
+    /**
      * Crea una nueva publicación usando un enlace de imagen.
      *
      * @param userId ID del usuario que crea la publicación
      * @param imageUrl URL de la imagen que se desea publicar
      * @param description descripción de la publicación
-     * @return respuesta indicando si la operación fue exitosa o si ocurrió un error
+     * @return respuesta indicando si la operación fue exitosa o si ocurrió un
+     * error
      */
     @PostMapping("/upload-link")
     public ResponseEntity<?> uploadPostDesdeLink(@RequestParam Long userId,
-                                                 @RequestParam String imageUrl,
-                                                 @RequestParam String description) {
+            @RequestParam String imageUrl,
+            @RequestParam String description) {
         try {
             postService.crearPostDesdeLink(userId, imageUrl, description);
             return ResponseEntity.ok(Map.of("success", true));
@@ -54,7 +56,7 @@ public class PostController {
         }
     }
 
-        /**
+    /**
      * Obtiene todas las publicaciones, opcionalmente filtradas por usuario.
      *
      * @param userId ID del usuario (opcional)
@@ -65,8 +67,9 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts(userId));
     }
 
-        /**
-     * Obtiene las publicaciones en formato de galería, opcionalmente filtradas por usuario.
+    /**
+     * Obtiene las publicaciones en formato de galería, opcionalmente filtradas
+     * por usuario.
      *
      * @param userId ID del usuario (opcional)
      * @return lista de publicaciones
@@ -76,8 +79,9 @@ public class PostController {
         return postService.obtenerPostsPorUsuario(userId);
     }
 
-        /**
-     * Alterna el estado de "me gusta" para una publicación por parte de un usuario.
+    /**
+     * Alterna el estado de "me gusta" para una publicación por parte de un
+     * usuario.
      *
      * @param id ID de la publicación
      * @param userId ID del usuario que da o quita el "me gusta"
@@ -88,12 +92,14 @@ public class PostController {
         return postService.toggleLike(id, userId);
     }
 
-           /**
+    /**
      * Agrega un comentario a una publicación específica.
      *
      * @param postId ID de la publicación que se va a comentar
-     * @param payload mapa que contiene el ID del usuario y el texto del comentario
-     * @return respuesta indicando si la operación fue exitosa o si ocurrió un error
+     * @param payload mapa que contiene el ID del usuario y el texto del
+     * comentario
+     * @return respuesta indicando si la operación fue exitosa o si ocurrió un
+     * error
      */
     @PostMapping("/{postId}/comment")
     public ResponseEntity<?> commentPost(
@@ -112,5 +118,41 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", "Datos inválidos o incompletos"));
         }
+    }
+
+    @DeleteMapping("/delete-likes/{userId}")
+    public ResponseEntity<Void> deleteLikesByUser(@PathVariable Long userId) {
+        postService.deleteLikesByUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/delete-comments/{userId}")
+    public ResponseEntity<Void> deleteCommentsByUser(@PathVariable Long userId) {
+        postService.deleteCommentsByUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/get-posts/{userId}")
+    public ResponseEntity<List<Post>> getPostsByUserId(@PathVariable Long userId) {
+        List<Post> posts = postService.getPostsByUserId(userId);
+        return ResponseEntity.ok(posts);
+    }
+
+    @DeleteMapping("/delete-comment-by-post/{postId}")
+    public ResponseEntity<Void> deleteCommentsByPost(@PathVariable Long postId) {
+        postService.deleteCommentsByPostId(postId);
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @DeleteMapping("/delete-like-by-post/{postId}")
+    public ResponseEntity<Void> deleteLikesByPost(@PathVariable Long postId) {
+        postService.deleteLikesByPostId(postId);
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @DeleteMapping("/delete-posts-by-userId/{userId}")
+    public ResponseEntity<Void> deletePostsByUserId(@PathVariable Long userId) {
+        postService.deletePostsByUserId(userId);
+        return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 }

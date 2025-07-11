@@ -164,4 +164,12 @@ public class AuthService {
     public boolean isEmailAvailable(String email) {
         return !userRepository.existsByEmail(email);
     }
+    
+        public boolean deleteUserById(Long userId) {
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId);
+            return true;
+        }
+        return false;
+    }
 }

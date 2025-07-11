@@ -21,9 +21,7 @@ public class FollowService {
     @Autowired
     private FollowRepository followRepository;
 
-        /** Repositorio para acceder a los datos de los usuarios. */
-    @Autowired
-    private UserRepository userRepository;
+
 
         /** Cliente HTTP para realizar solicitudes a otros servicios. */
     @Autowired
@@ -39,8 +37,11 @@ public class FollowService {
      */
     @Transactional
     public boolean followUser(String fromUsername, String toUsername) {
-        User from = userRepository.findByUsername(fromUsername).orElse(null);
-        User to = userRepository.findByUsername(toUsername).orElse(null);
+        //User from = userRepository.findByUsername(fromUsername).orElse(null);
+        //User to = userRepository.findByUsername(toUsername).orElse(null);
+        
+        User from = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + fromUsername, User.class);
+        User to = restTemplate.getForObject("https://exciting-tranquility-production-14e6.up.railway.app/auth/by-username/" + toUsername, User.class);
 
         if (from == null || to == null || from.equals(to)) {
             return false;
@@ -114,5 +115,7 @@ public class FollowService {
         public void deleteAllByUserId(Long userId) {
         followRepository.deleteAllByUserId(userId);
     }
+        
+        
 
 }

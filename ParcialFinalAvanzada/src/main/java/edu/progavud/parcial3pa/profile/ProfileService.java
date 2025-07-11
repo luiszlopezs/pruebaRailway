@@ -184,11 +184,11 @@ public class ProfileService {
 
             List<Post> userPosts = response.getBody();
 
-            for (Post post : userPosts) {
-//                commentRepository.deleteByPostId(post.getId());
-                restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/posts/delete-comment-by-post/" + post.getId());
-//                postLikeRepository.deleteByPostId(post.getId());
-                restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/posts/delete-like-by-post/" + post.getId());
+            if (userPosts != null) {
+                for (Post post : userPosts) {
+                    restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/posts/delete-comment-by-post/" + post.getId());
+                    restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/posts/delete-like-by-post/" + post.getId());
+                }
             }
 
             // 4. Eliminar posts del usuario
@@ -204,7 +204,7 @@ public class ProfileService {
 
             // 7. Eliminar usuario
             //userRepository.deleteById(userId);
-            restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/auth/delete/"+userId);
+            restTemplate.delete("https://exciting-tranquility-production-14e6.up.railway.app/auth/delete/" + userId);
 
         } catch (Exception e) {
             throw new RuntimeException("Error al eliminar perfil y usuario: " + e.getMessage(), e);
