@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
 @SpringBootApplication
 public class Parcial3paApplication {
 
@@ -17,16 +16,16 @@ public class Parcial3paApplication {
     }
 
     @Bean
+    //metodo para configurar el acceso al proyecto desde otros dominio o puertos
+    //este metodo permite resolver el problema con las politicas CORS de los navegadores
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOriginPatterns("*") // ✅ Acepta cualquier origen de forma compatible con allowCredentials
-                        .allowedMethods("*") // ✅ Acepta cualquier método (GET, POST, etc)
-                        .allowedHeaders("*") // ✅ Acepta cualquier cabecera
-                        .allowCredentials(true) // ✅ Permite enviar cookies / sesiones si se usa
-                        .maxAge(3600);
+                registry.addMapping("/*")                   // Aplica a todas las rutas, despues cada controller le digo cual es pa que sea bonito
+                .allowedOrigins("")                 // Permite cualquier origen, asi no nos complicamos en mirar que puerto trabaja el ide del Frontend jiji
+                .allowedMethods("GET", "POST", "PUT", "DELETE")  // Sólo estos métodos
+                .allowedHeaders("*");                // Permite cualquier encabezado
             }
         };
     }
