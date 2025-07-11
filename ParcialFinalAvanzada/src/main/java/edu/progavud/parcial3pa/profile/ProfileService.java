@@ -80,7 +80,7 @@ public class ProfileService {
         nuevoPerfil.setFollowers(0);
         nuevoPerfil.setFollowing(0);
         nuevoPerfil.setNumPosts(0);
-        nuevoPerfil.setProfilePicture("/postsImgs/profile_pictures/default.jpg");
+        nuevoPerfil.setProfilePicture("https://avatars.pfptown.com/327/black-and-white-pfp-2744.png");
 
         profileRepository.save(nuevoPerfil);
 
