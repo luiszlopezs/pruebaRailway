@@ -41,6 +41,11 @@ public class AuthController {
         this.authService = authService;
     }
 
+        @GetMapping("/ping")
+    public String ping() {
+        return "🚀 ¡Tu backend Spring Boot está funcionando en Railway!";
+    }
+
     /**
      * Registro de usuario
      */
