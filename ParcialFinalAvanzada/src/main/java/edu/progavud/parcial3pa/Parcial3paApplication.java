@@ -22,7 +22,7 @@ public WebMvcConfigurer corsConfigurer() {
         @Override
         public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**") // 🔥 Aplica CORS a todos los endpoints
-                    .allowedOrigins("http://localhost:8383") // ✅ tu frontend local
+                    .allowedOrigins("*") // ✅ tu frontend local
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Opciones necesarias para fetch con JSON
                     .allowedHeaders("*")
                     .allowCredentials(true)
