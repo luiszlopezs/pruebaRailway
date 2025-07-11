@@ -5,6 +5,8 @@
 package edu.progavud.parcial3pa.profile;
 
 import edu.progavud.parcial3pa.auth.User;
+import edu.progavud.parcial3pa.profile.Profile;
+import edu.progavud.parcial3pa.profile.ProfileService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
